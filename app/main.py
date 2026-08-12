@@ -9,6 +9,8 @@ from pydantic import BaseModel, Field
 # Carga variables de entorno desde .env (no falla si .env no existe)
 load_dotenv()
 
+from app.routers.historial import router as historial_router
+
 # Metadatos para la documentación automática (OpenAPI)
 app = FastAPI(
     title="AI Diplomado API",
@@ -71,5 +73,4 @@ async def health_check() -> HealthResponse:
     )
 
 
-# Aquí agregaremos más adelante los routers:
-# app.include_router(agent_router)
+app.include_router(historial_router)
