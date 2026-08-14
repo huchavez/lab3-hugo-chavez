@@ -422,5 +422,34 @@ Found 6 errors in 1 file (checked 11 source files)
 
 
 
+(ia-dev-template) @huchavez ➜ /workspaces/lab3-hugo-chavez (lab3) $ uv run --frozen mypy app/
+Success: no issues found in 11 source files
+
+
+
+
+
+
+
+
+
+
+
+#file:docs/evidencias/hallazgos_severidad.md
+
+CONTEXTO:
+Acabo de ejecutar uv run --frozen pytest --cov=app --cov-report=term-missing y necesito realizar 
+la auditoria del codigo segun el archivo.
+TAREA:
+Actuá como auditor de código. Buscá específicamente:
+1. Tratar primeramente prioridad ALTA y MEDIA
+2. Ejecutar test luego de cada implementacion
+3. El principal riesgo es la falta de pruebas de la ruta GET y de la lógica de paginación/autorización que se está implementando.
+4. Ampliar la cobertura de pruebas.
+Devolvéme:
+· Lista de hallazgos solucionados
+· Sugerencia concreta para cada hallazgo
+RESTRICCIONES: solo Python, no implementar sin test, solo si test es valido
+
 
 

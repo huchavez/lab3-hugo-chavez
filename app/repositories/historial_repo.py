@@ -1,8 +1,21 @@
 from __future__ import annotations
 
 from datetime import date, datetime
+from typing import Any, TypedDict
 
-FAKE_TRANSACCIONES = [
+
+# 1. Definimos la estructura exacta de la transacción
+class Transaccion(TypedDict):
+    transaccion_id: str
+    comercio_id: str
+    monto: int
+    created_at: datetime
+    estado: str
+    ultimos_4_pan: str
+    codigo_autorizacion: str
+
+# 2. Tipamos la lista explícitamente
+FAKE_TRANSACCIONES: list[Transaccion] = [
     {
         "transaccion_id": "a1111111-1111-1111-1111-111111111111",
         "comercio_id": "123e4567-e89b-42d3-a456-426614174000",
@@ -62,6 +75,7 @@ def _decode_cursor(cursor: str) -> tuple[datetime, str]:
     return datetime.fromisoformat(parts[0]), parts[1]
 
 
+# 3. (Opcional pero recomendado) Mejoramos el tipado de retorno cambiando `dict` por `dict[str, Any]`
 def query_transacciones_in_memory(
     comercio_id: str,
     desde: date | None,
@@ -69,7 +83,7 @@ def query_transacciones_in_memory(
     estado: str | None,
     page_size: int,
     cursor: str | None,
-) -> dict:
+) -> dict[str, Any]:
     items = [
         item
         for item in FAKE_TRANSACCIONES
