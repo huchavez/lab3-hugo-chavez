@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, date
-from typing import Optional
+from datetime import date, datetime
 
 FAKE_TRANSACCIONES = [
     {
@@ -65,11 +64,11 @@ def _decode_cursor(cursor: str) -> tuple[datetime, str]:
 
 def query_transacciones_in_memory(
     comercio_id: str,
-    desde: Optional[date],
-    hasta: Optional[date],
-    estado: Optional[str],
+    desde: date | None,
+    hasta: date | None,
+    estado: str | None,
     page_size: int,
-    cursor: Optional[str],
+    cursor: str | None,
 ) -> dict:
     items = [
         item

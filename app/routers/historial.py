@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import date
-from typing import Literal, Optional
+from typing import Literal
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query
@@ -13,8 +13,8 @@ router = APIRouter(prefix="/api/v1", tags=["Historial"])
 
 
 def _extract_comercio_id(
-    authorization: Optional[str] = Header(None),
-    x_comercio_id: Optional[str] = Header(None),
+    authorization: str | None = Header(None),
+    x_comercio_id: str | None = Header(None),
 ) -> str:
     token = None
     if authorization and authorization.startswith("Bearer "):
@@ -36,12 +36,12 @@ def _extract_comercio_id(
 @router.get("/transacciones")
 def get_transacciones(
     comercio_id: str = Depends(_extract_comercio_id),
-    desde: Optional[date] = Query(None, description="Fecha inicial en formato YYYY-MM-DD"),
-    hasta: Optional[date] = Query(None, description="Fecha final en formato YYYY-MM-DD"),
-    estado: Optional[Literal["pending", "approved", "rejected", "refunded", "cancelled"]]
+    desde: date | None = Query(None, description="Fecha inicial en formato YYYY-MM-DD"),
+    hasta: date | None = Query(None, description="Fecha final en formato YYYY-MM-DD"),
+    estado: Literal["pending", "approved", "rejected", "refunded", "cancelled"] | None
     = Query(None, description="Estado a filtrar"),
     page_size: int = Query(50, ge=1, le=200, description="Tamaño de página entre 1 y 200"),
-    cursor: Optional[str] = Query(None, description="Cursor opaco para paginación"),
+    cursor: str | None = Query(None, description="Cursor opaco para paginación"),
 ) -> dict:
     try:
         return query_transacciones(

@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 from datetime import date, datetime, timedelta
-from typing import Literal, Optional
+from typing import Literal
 
-from app.repositories.historial_repo import FAKE_TRANSACCIONES, query_transacciones_in_memory
+from app.repositories.historial_repo import (
+    query_transacciones_in_memory,
+)
 
 Estado = Literal["pending", "approved", "rejected", "refunded", "cancelled"]
 
@@ -15,7 +17,7 @@ def _mask_ultimos_4_pan(ultimos_4_pan: str) -> str:
     return f"**** **** **** {ultimos_4_pan}"
 
 
-def _validate_date_range(desde: Optional[date], hasta: Optional[date]) -> None:
+def _validate_date_range(desde: date | None, hasta: date | None) -> None:
     if desde and hasta and desde > hasta:
         raise ValueError("El rango de fecha es inválido")
 
@@ -27,11 +29,11 @@ def _validate_date_range(desde: Optional[date], hasta: Optional[date]) -> None:
 
 def query_transacciones(
     comercio_id: str,
-    desde: Optional[date],
-    hasta: Optional[date],
-    estado: Optional[Estado],
+    desde: date | None,
+    hasta: date | None,
+    estado: Estado | None,
     page_size: int,
-    cursor: Optional[str],
+    cursor: str | None,
 ) -> dict:
     _validate_date_range(desde, hasta)
 
