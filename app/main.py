@@ -6,10 +6,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
+from app.routers.historial import router as historial_router
+
 # Carga variables de entorno desde .env (no falla si .env no existe)
 load_dotenv()
-
-from app.routers.historial import router as historial_router
 
 # Metadatos para la documentación automática (OpenAPI)
 app = FastAPI(
