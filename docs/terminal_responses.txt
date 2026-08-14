@@ -1,0 +1,426 @@
+# 1. Ejecutar tests con verbosidad
+@huchavez ➜ /workspaces/lab3-hugo-chavez (lab3) $ uv run --frozen pytest -v
+============================================================================= test session starts ==============================================================================
+platform linux -- Python 3.12.13, pytest-8.4.2, pluggy-1.6.0 -- /workspaces/lab3-hugo-chavez/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: /workspaces/lab3-hugo-chavez
+configfile: pyproject.toml
+testpaths: tests
+plugins: anyio-4.13.0, cov-5.0.0, asyncio-1.4.0
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 40 items                                                                                                                                                             
+
+tests/test_agent.py::test_agent_calculate_and_finish PASSED                                                                                                              [  2%]
+tests/test_agent.py::test_agent_lookup_merchant_flow PASSED                                                                                                              [  5%]
+tests/test_agent.py::test_agent_blocks_action_requiring_approval PASSED                                                                                                  [  7%]
+tests/test_agent.py::test_agent_handles_unknown_tool_gracefully PASSED                                                                                                   [ 10%]
+tests/test_agent.py::test_agent_max_steps_limit PASSED                                                                                                                   [ 12%]
+tests/test_agent.py::test_mock_client_reset PASSED                                                                                                                       [ 15%]
+tests/test_sanity.py::test_health_status_ok PASSED                                                                                                                       [ 17%]
+tests/test_sanity.py::test_health_response_schema PASSED                                                                                                                 [ 20%]
+tests/test_sanity.py::test_health_version_format PASSED                                                                                                                  [ 22%]
+tests/test_sanity.py::test_root_returns_welcome_message PASSED                                                                                                           [ 25%]
+tests/test_sanity.py::test_health_response_pydantic_invalid_status PASSED                                                                                                [ 27%]
+tests/test_sanity.py::test_health_response_pydantic_missing_field PASSED                                                                                                 [ 30%]
+tests/test_sanity.py::test_mock_llm_response_structure PASSED                                                                                                            [ 32%]
+tests/test_sanity.py::test_mock_llm_agent_mode_returns_json PASSED                                                                                                       [ 35%]
+tests/test_tools_calculator.py::test_calculate_simple_addition PASSED                                                                                                    [ 37%]
+tests/test_tools_calculator.py::test_calculate_complex_expression PASSED                                                                                                 [ 40%]
+tests/test_tools_calculator.py::test_calculate_exponentiation PASSED                                                                                                     [ 42%]
+tests/test_tools_calculator.py::test_calculate_decimal_result PASSED                                                                                                     [ 45%]
+tests/test_tools_calculator.py::test_calculate_negative_numbers PASSED                                                                                                   [ 47%]
+tests/test_tools_calculator.py::test_calculate_empty_string_returns_error PASSED                                                                                         [ 50%]
+tests/test_tools_calculator.py::test_calculate_non_string_returns_error PASSED                                                                                           [ 52%]
+tests/test_tools_calculator.py::test_calculate_division_by_zero PASSED                                                                                                   [ 55%]
+tests/test_tools_calculator.py::test_calculate_invalid_syntax PASSED                                                                                                     [ 57%]
+tests/test_tools_calculator.py::test_calculate_dangling_operator PASSED                                                                                                  [ 60%]
+tests/test_tools_calculator.py::test_calculate_rejects_function_calls PASSED                                                                                             [ 62%]
+tests/test_tools_calculator.py::test_calculate_rejects_attribute_access PASSED                                                                                           [ 65%]
+tests/test_tools_calculator.py::test_calculate_rejects_variable_names PASSED                                                                                             [ 67%]
+tests/test_tools_merchant.py::test_lookup_existing_merchant_returns_data PASSED                                                                                          [ 70%]
+tests/test_tools_merchant.py::test_lookup_returns_status_field PASSED                                                                                                    [ 72%]
+tests/test_tools_merchant.py::test_lookup_suspended_merchant PASSED                                                                                                      [ 75%]
+tests/test_tools_merchant.py::test_lookup_normalizes_lowercase_id PASSED                                                                                                 [ 77%]
+tests/test_tools_merchant.py::test_lookup_strips_whitespace PASSED                                                                                                       [ 80%]
+tests/test_tools_merchant.py::test_lookup_not_found_returns_message PASSED                                                                                               [ 82%]
+tests/test_tools_merchant.py::test_lookup_invalid_format_returns_error PASSED                                                                                            [ 85%]
+tests/test_tools_merchant.py::test_lookup_non_string_returns_error PASSED                                                                                                [ 87%]
+tests/test_tools_merchant.py::test_lookup_does_not_expose_pci_compliant_field PASSED                                                                                     [ 90%]
+tests/test_tools_merchant.py::test_lookup_does_not_expose_internal_volume PASSED                                                                                         [ 92%]
+tests/test_transaction_create_request.py::test_create_transaction_happy_path_returns_201 PASSED                                                                          [ 95%]
+tests/test_transaction_create_request.py::test_create_transaction_rejects_invalid_field_returns_422 PASSED                                                               [ 97%]
+tests/test_transaction_create_request.py::test_create_transaction_rejects_zero_monto_boundary_value PASSED                                                               [100%]
+
+=============================================================================== warnings summary ===============================================================================
+.venv/lib/python3.12/site-packages/fastapi/testclient.py:1
+  /workspaces/lab3-hugo-chavez/.venv/lib/python3.12/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================================================================== 40 passed, 1 warning in 0.67s =========================================================================
+
+# 2. Confirmar cobertura mínima
+@huchavez ➜ /workspaces/lab3-hugo-chavez (lab3) $ uv run --frozen pytest --cov=app --cov-report=term-missing
+============================================================================= test session starts ==============================================================================
+platform linux -- Python 3.12.13, pytest-8.4.2, pluggy-1.6.0
+rootdir: /workspaces/lab3-hugo-chavez
+configfile: pyproject.toml
+testpaths: tests
+plugins: anyio-4.13.0, cov-5.0.0, asyncio-1.4.0
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 40 items                                                                                                                                                             
+
+tests/test_agent.py ......                                                                                                                                               [ 15%]
+tests/test_sanity.py ........                                                                                                                                            [ 35%]
+tests/test_tools_calculator.py .............                                                                                                                             [ 67%]
+tests/test_tools_merchant.py ..........                                                                                                                                  [ 92%]
+tests/test_transaction_create_request.py ...                                                                                                                             [100%]
+
+=============================================================================== warnings summary ===============================================================================
+.venv/lib/python3.12/site-packages/fastapi/testclient.py:1
+  /workspaces/lab3-hugo-chavez/.venv/lib/python3.12/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+
+---------- coverage: platform linux, python 3.12.13-final-0 ----------
+Name                                        Stmts   Miss  Cover   Missing
+-------------------------------------------------------------------------
+app/__init__.py                                 0      0   100%
+app/main.py                                    23      0   100%
+app/repositories/__init__.py                    0      0   100%
+app/repositories/historial_repo.py             29     22    24%   56, 60-63, 74-105
+app/routers/__init__.py                         0      0   100%
+app/routers/historial.py                       30     16    47%   19-33, 46-56
+app/schemas/__init__.py                         2      0   100%
+app/schemas/transaction_create_request.py       9      0   100%
+app/services/__init__.py                        0      0   100%
+app/services/historial_service.py              20     11    45%   15, 19-25, 36-60
+-------------------------------------------------------------------------
+TOTAL                                         113     49    57%
+
+FAIL Required test coverage of 60.0% not reached. Total coverage: 56.64%
+======================================================================== 40 passed, 1 warning in 1.58s =========================================================================
+
+
+
+
+# 3. Buscar señales de alarma
+@huchavez ➜ /workspaces/lab3-hugo-chavez (lab3) $ grep -rn "assert True" tests/
+@huchavez ➜ /workspaces/lab3-hugo-chavez (lab3) $ grep -rn "try:" tests/
+
+
+
+
+# 4. Linter y tipos
+@huchavez ➜ /workspaces/lab3-hugo-chavez (lab3) $ uv run --frozen ruff check .
+E402 Module level import not at top of file
+  --> app/main.py:12:1
+   |
+10 | load_dotenv()
+11 |
+12 | from app.routers.historial import router as historial_router
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+13 |
+14 | # Metadatos para la documentación automática (OpenAPI)
+   |
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> app/repositories/historial_repo.py:1:1
+  |
+1 | / from __future__ import annotations
+2 | |
+3 | | from datetime import datetime, date
+4 | | from typing import Optional
+  | |___________________________^
+5 |
+6 |   FAKE_TRANSACCIONES = [
+  |
+help: Organize imports
+
+UP045 [*] Use `X | None` for type annotations
+  --> app/repositories/historial_repo.py:68:12
+   |
+66 | def query_transacciones_in_memory(
+67 |     comercio_id: str,
+68 |     desde: Optional[date],
+   |            ^^^^^^^^^^^^^^
+69 |     hasta: Optional[date],
+70 |     estado: Optional[str],
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+  --> app/repositories/historial_repo.py:69:12
+   |
+67 |     comercio_id: str,
+68 |     desde: Optional[date],
+69 |     hasta: Optional[date],
+   |            ^^^^^^^^^^^^^^
+70 |     estado: Optional[str],
+71 |     page_size: int,
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+  --> app/repositories/historial_repo.py:70:13
+   |
+68 |     desde: Optional[date],
+69 |     hasta: Optional[date],
+70 |     estado: Optional[str],
+   |             ^^^^^^^^^^^^^
+71 |     page_size: int,
+72 |     cursor: Optional[str],
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+  --> app/repositories/historial_repo.py:72:13
+   |
+70 |     estado: Optional[str],
+71 |     page_size: int,
+72 |     cursor: Optional[str],
+   |             ^^^^^^^^^^^^^
+73 | ) -> dict:
+74 |     items = [
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+  --> app/routers/historial.py:16:20
+   |
+15 | def _extract_comercio_id(
+16 |     authorization: Optional[str] = Header(None),
+   |                    ^^^^^^^^^^^^^
+17 |     x_comercio_id: Optional[str] = Header(None),
+18 | ) -> str:
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+  --> app/routers/historial.py:17:20
+   |
+15 | def _extract_comercio_id(
+16 |     authorization: Optional[str] = Header(None),
+17 |     x_comercio_id: Optional[str] = Header(None),
+   |                    ^^^^^^^^^^^^^
+18 | ) -> str:
+19 |     token = None
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+  --> app/routers/historial.py:39:12
+   |
+37 | def get_transacciones(
+38 |     comercio_id: str = Depends(_extract_comercio_id),
+39 |     desde: Optional[date] = Query(None, description="Fecha inicial en formato YYYY-MM-DD"),
+   |            ^^^^^^^^^^^^^^
+40 |     hasta: Optional[date] = Query(None, description="Fecha final en formato YYYY-MM-DD"),
+41 |     estado: Optional[Literal["pending", "approved", "rejected", "refunded", "cancelled"]]
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+  --> app/routers/historial.py:40:12
+   |
+38 |     comercio_id: str = Depends(_extract_comercio_id),
+39 |     desde: Optional[date] = Query(None, description="Fecha inicial en formato YYYY-MM-DD"),
+40 |     hasta: Optional[date] = Query(None, description="Fecha final en formato YYYY-MM-DD"),
+   |            ^^^^^^^^^^^^^^
+41 |     estado: Optional[Literal["pending", "approved", "rejected", "refunded", "cancelled"]]
+42 |     = Query(None, description="Estado a filtrar"),
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+  --> app/routers/historial.py:41:13
+   |
+39 |     desde: Optional[date] = Query(None, description="Fecha inicial en formato YYYY-MM-DD"),
+40 |     hasta: Optional[date] = Query(None, description="Fecha final en formato YYYY-MM-DD"),
+41 |     estado: Optional[Literal["pending", "approved", "rejected", "refunded", "cancelled"]]
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+42 |     = Query(None, description="Estado a filtrar"),
+43 |     page_size: int = Query(50, ge=1, le=200, description="Tamaño de página entre 1 y 200"),
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+  --> app/routers/historial.py:44:13
+   |
+42 |     = Query(None, description="Estado a filtrar"),
+43 |     page_size: int = Query(50, ge=1, le=200, description="Tamaño de página entre 1 y 200"),
+44 |     cursor: Optional[str] = Query(None, description="Cursor opaco para paginación"),
+   |             ^^^^^^^^^^^^^
+45 | ) -> dict:
+46 |     try:
+   |
+help: Convert to `X | None`
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> app/services/historial_service.py:1:1
+  |
+1 | / from __future__ import annotations
+2 | |
+3 | | from datetime import date, datetime, timedelta
+4 | | from typing import Literal, Optional
+5 | |
+6 | | from app.repositories.historial_repo import FAKE_TRANSACCIONES, query_transacciones_in_memory
+  | |_____________________________________________________________________________________________^
+7 |
+8 |   Estado = Literal["pending", "approved", "rejected", "refunded", "cancelled"]
+  |
+help: Organize imports
+
+F401 [*] `app.repositories.historial_repo.FAKE_TRANSACCIONES` imported but unused
+ --> app/services/historial_service.py:6:45
+  |
+4 | from typing import Literal, Optional
+5 |
+6 | from app.repositories.historial_repo import FAKE_TRANSACCIONES, query_transacciones_in_memory
+  |                                             ^^^^^^^^^^^^^^^^^^
+7 |
+8 | Estado = Literal["pending", "approved", "rejected", "refunded", "cancelled"]
+  |
+help: Remove unused import: `app.repositories.historial_repo.FAKE_TRANSACCIONES`
+
+UP045 [*] Use `X | None` for type annotations
+  --> app/services/historial_service.py:18:33
+   |
+18 | def _validate_date_range(desde: Optional[date], hasta: Optional[date]) -> None:
+   |                                 ^^^^^^^^^^^^^^
+19 |     if desde and hasta and desde > hasta:
+20 |         raise ValueError("El rango de fecha es inválido")
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+  --> app/services/historial_service.py:18:56
+   |
+18 | def _validate_date_range(desde: Optional[date], hasta: Optional[date]) -> None:
+   |                                                        ^^^^^^^^^^^^^^
+19 |     if desde and hasta and desde > hasta:
+20 |         raise ValueError("El rango de fecha es inválido")
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+  --> app/services/historial_service.py:30:12
+   |
+28 | def query_transacciones(
+29 |     comercio_id: str,
+30 |     desde: Optional[date],
+   |            ^^^^^^^^^^^^^^
+31 |     hasta: Optional[date],
+32 |     estado: Optional[Estado],
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+  --> app/services/historial_service.py:31:12
+   |
+29 |     comercio_id: str,
+30 |     desde: Optional[date],
+31 |     hasta: Optional[date],
+   |            ^^^^^^^^^^^^^^
+32 |     estado: Optional[Estado],
+33 |     page_size: int,
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+  --> app/services/historial_service.py:32:13
+   |
+30 |     desde: Optional[date],
+31 |     hasta: Optional[date],
+32 |     estado: Optional[Estado],
+   |             ^^^^^^^^^^^^^^^^
+33 |     page_size: int,
+34 |     cursor: Optional[str],
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+  --> app/services/historial_service.py:34:13
+   |
+32 |     estado: Optional[Estado],
+33 |     page_size: int,
+34 |     cursor: Optional[str],
+   |             ^^^^^^^^^^^^^
+35 | ) -> dict:
+36 |     _validate_date_range(desde, hasta)
+   |
+help: Convert to `X | None`
+
+Found 20 errors.
+[*] 19 fixable with the `--fix` option.
+
+
+
+# 4. Fix 
+@huchavez ➜ /workspaces/lab3-hugo-chavez (lab3) $ uv run --frozen ruff check . --fix
+E402 Module level import not at top of file
+  --> app/main.py:12:1
+   |
+10 | load_dotenv()
+11 |
+12 | from app.routers.historial import router as historial_router
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+13 |
+14 | # Metadatos para la documentación automática (OpenAPI)
+   |
+
+Found 23 errors (22 fixed, 1 remaining).
+
+
+
+
+@huchavez ➜ /workspaces/lab3-hugo-chavez (lab3) $ uv run --frozen ruff check .
+I001 [*] Import block is un-sorted or un-formatted
+  --> app/main.py:2:1
+   |
+ 1 |   # app/main.py
+ 2 | / import os
+ 3 | |
+ 4 | | from dotenv import load_dotenv
+ 5 | | from fastapi import FastAPI
+ 6 | | from fastapi.middleware.cors import CORSMiddleware
+ 7 | | from pydantic import BaseModel, Field
+ 8 | | from app.routers.historial import router as historial_router
+   | |____________________________________________________________^
+ 9 |
+10 |   # Carga variables de entorno desde .env (no falla si .env no existe)
+   |
+help: Organize imports
+
+Found 1 error.
+[*] 1 fixable with the `--fix` option.
+
+
+
+
+@huchavez ➜ /workspaces/lab3-hugo-chavez (lab3) $ uv run --frozen ruff check . --fix
+Found 1 error (1 fixed, 0 remaining).
+
+
+
+@huchavez ➜ /workspaces/lab3-hugo-chavez (lab3) $ uv run --frozen ruff check .
+All checks passed!
+
+
+
+@huchavez ➜ /workspaces/lab3-hugo-chavez (lab3) $ uv run --frozen mypy app/
+app/repositories/historial_repo.py:77: error: "object" has no attribute "date"  [attr-defined]
+app/repositories/historial_repo.py:78: error: "object" has no attribute "date"  [attr-defined]
+app/repositories/historial_repo.py:88: error: Unsupported operand types for > ("datetime" and "object")  [operator]
+app/repositories/historial_repo.py:89: error: Unsupported operand types for > ("str" and "object")  [operator]
+app/repositories/historial_repo.py:102: error: Argument 1 to "_encode_cursor" has incompatible type "object"; expected "datetime"  [arg-type]
+app/repositories/historial_repo.py:102: error: Argument 2 to "_encode_cursor" has incompatible type "object"; expected "str"  [arg-type]
+Found 6 errors in 1 file (checked 11 source files)
+
+
+
+
+
+
+
