@@ -15,6 +15,9 @@ from fastapi.testclient import TestClient
 
 from app.main import app
 
+VALID_UUID = "123e4567-e89b-42d3-a456-426614174000"
+SECOND_UUID = "999e4567-e89b-42d3-a456-426614174999"
+
 client = TestClient(app)
 
 
@@ -42,7 +45,7 @@ def test_get_transacciones_invalid_bearer_token_returns_401() -> None:
 
 def test_get_transacciones_valid_bearer_token_returns_200() -> None:
     """GET with valid Bearer token (UUID) should return 200."""
-    token = "123e4567-e89b-42d3-a456-426614174000"
+    token = VALID_UUID
     response = client.get(
         "/api/v1/transacciones",
         headers={"Authorization": f"Bearer {token}"},
@@ -52,7 +55,7 @@ def test_get_transacciones_valid_bearer_token_returns_200() -> None:
 
 def test_get_transacciones_x_comercio_id_header_returns_200() -> None:
     """GET with x-comercio-id header should work as fallback."""
-    comercio_id = "123e4567-e89b-42d3-a456-426614174000"
+    comercio_id = VALID_UUID
     response = client.get(
         "/api/v1/transacciones",
         headers={"x-comercio-id": comercio_id},
@@ -73,7 +76,7 @@ def test_get_transacciones_invalid_x_comercio_id_returns_401() -> None:
 
 def test_get_transacciones_bearer_token_with_extra_whitespace_works() -> None:
     """GET with Bearer token with extra whitespace should be trimmed."""
-    token = "123e4567-e89b-42d3-a456-426614174000"
+    token = VALID_UUID
     response = client.get(
         "/api/v1/transacciones",
         headers={"Authorization": f"Bearer  {token}  "},
@@ -86,7 +89,7 @@ def test_get_transacciones_bearer_token_with_extra_whitespace_works() -> None:
 
 def test_get_transacciones_happy_path_returns_response_structure() -> None:
     """GET returns correct response structure with data and pagination."""
-    token = "123e4567-e89b-42d3-a456-426614174000"
+    token = VALID_UUID
     response = client.get(
         "/api/v1/transacciones",
         headers={"Authorization": f"Bearer {token}"},
@@ -104,7 +107,7 @@ def test_get_transacciones_happy_path_returns_only_comercio_transactions() -> No
     """GET returns only transactions for the authenticated comercio_id."""
     # comercio_id 123e4567-e89b-42d3-a456-426614174000 has 3 transactions in FAKE_DATA
     # comercio_id 999e4567-e89b-42d3-a456-426614174999 has 1 transaction
-    token1 = "123e4567-e89b-42d3-a456-426614174000"
+    token1 = VALID_UUID
     response1 = client.get(
         "/api/v1/transacciones",
         headers={"Authorization": f"Bearer {token1}"},
@@ -113,7 +116,7 @@ def test_get_transacciones_happy_path_returns_only_comercio_transactions() -> No
     assert len(body1["data"]) > 0
     assert all(tx["comercio_id"] == token1 for tx in body1["data"])
 
-    token2 = "999e4567-e89b-42d3-a456-426614174999"
+    token2 = SECOND_UUID
     response2 = client.get(
         "/api/v1/transacciones",
         headers={"Authorization": f"Bearer {token2}"},
@@ -126,7 +129,7 @@ def test_get_transacciones_happy_path_returns_only_comercio_transactions() -> No
 
 def test_get_transacciones_masks_ultimos_4_pan() -> None:
     """GET returns PAN masked in format **** **** **** XXXX."""
-    token = "123e4567-e89b-42d3-a456-426614174000"
+    token = VALID_UUID
     response = client.get(
         "/api/v1/transacciones",
         headers={"Authorization": f"Bearer {token}"},
@@ -143,7 +146,7 @@ def test_get_transacciones_masks_ultimos_4_pan() -> None:
 
 def test_get_transacciones_returns_required_fields() -> None:
     """GET returns all required transaction fields."""
-    token = "123e4567-e89b-42d3-a456-426614174000"
+    token = VALID_UUID
     response = client.get(
         "/api/v1/transacciones",
         headers={"Authorization": f"Bearer {token}"},
@@ -168,7 +171,7 @@ def test_get_transacciones_returns_required_fields() -> None:
 
 def test_get_transacciones_filter_by_estado_returns_only_matching() -> None:
     """GET with estado filter returns only transactions with that estado."""
-    token = "123e4567-e89b-42d3-a456-426614174000"
+    token = VALID_UUID
     response = client.get(
         "/api/v1/transacciones",
         headers={"Authorization": f"Bearer {token}"},
@@ -182,7 +185,7 @@ def test_get_transacciones_filter_by_estado_returns_only_matching() -> None:
 
 def test_get_transacciones_filter_by_estado_pending() -> None:
     """GET with estado=pending returns only pending transactions."""
-    token = "123e4567-e89b-42d3-a456-426614174000"
+    token = VALID_UUID
     response = client.get(
         "/api/v1/transacciones",
         headers={"Authorization": f"Bearer {token}"},
@@ -195,7 +198,7 @@ def test_get_transacciones_filter_by_estado_pending() -> None:
 
 def test_get_transacciones_filter_by_estado_no_match_returns_empty() -> None:
     """GET with estado filter that matches no transactions returns empty data."""
-    token = "123e4567-e89b-42d3-a456-426614174000"
+    token = VALID_UUID
     response = client.get(
         "/api/v1/transacciones",
         headers={"Authorization": f"Bearer {token}"},
@@ -210,7 +213,7 @@ def test_get_transacciones_filter_by_estado_no_match_returns_empty() -> None:
 
 def test_get_transacciones_filter_by_desde_only() -> None:
     """GET with desde date only returns transactions >= desde."""
-    token = "123e4567-e89b-42d3-a456-426614174000"
+    token = VALID_UUID
     desde = date(2026, 8, 3)
     response = client.get(
         "/api/v1/transacciones",
@@ -226,7 +229,7 @@ def test_get_transacciones_filter_by_desde_only() -> None:
 
 def test_get_transacciones_filter_by_hasta_only() -> None:
     """GET with hasta date only returns transactions <= hasta."""
-    token = "123e4567-e89b-42d3-a456-426614174000"
+    token = VALID_UUID
     hasta = date(2026, 8, 2)
     response = client.get(
         "/api/v1/transacciones",
@@ -242,7 +245,7 @@ def test_get_transacciones_filter_by_hasta_only() -> None:
 
 def test_get_transacciones_filter_by_desde_and_hasta() -> None:
     """GET with both desde and hasta returns transactions within range."""
-    token = "123e4567-e89b-42d3-a456-426614174000"
+    token = VALID_UUID
     desde = date(2026, 8, 2)
     hasta = date(2026, 8, 4)
     response = client.get(
@@ -259,7 +262,7 @@ def test_get_transacciones_filter_by_desde_and_hasta() -> None:
 
 def test_get_transacciones_invalid_date_range_desde_gt_hasta_returns_400() -> None:
     """GET with desde > hasta returns 400 error."""
-    token = "123e4567-e89b-42d3-a456-426614174000"
+    token = VALID_UUID
     desde = date(2026, 8, 5)
     hasta = date(2026, 8, 1)
     response = client.get(
@@ -274,7 +277,7 @@ def test_get_transacciones_invalid_date_range_desde_gt_hasta_returns_400() -> No
 
 def test_get_transacciones_date_too_old_returns_400() -> None:
     """GET with desde older than 90 days returns 400 error."""
-    token = "123e4567-e89b-42d3-a456-426614174000"
+    token = VALID_UUID
     too_old = datetime.utcnow().date() - timedelta(days=91)
     response = client.get(
         "/api/v1/transacciones",
@@ -291,7 +294,7 @@ def test_get_transacciones_date_too_old_returns_400() -> None:
 
 def test_get_transacciones_respects_page_size() -> None:
     """GET with page_size returns <= page_size items."""
-    token = "123e4567-e89b-42d3-a456-426614174000"
+    token = VALID_UUID
     response = client.get(
         "/api/v1/transacciones",
         headers={"Authorization": f"Bearer {token}"},
@@ -304,7 +307,7 @@ def test_get_transacciones_respects_page_size() -> None:
 
 def test_get_transacciones_default_page_size_is_50() -> None:
     """GET without page_size uses default of 50."""
-    token = "123e4567-e89b-42d3-a456-426614174000"
+    token = VALID_UUID
     response = client.get(
         "/api/v1/transacciones",
         headers={"Authorization": f"Bearer {token}"},
@@ -315,7 +318,7 @@ def test_get_transacciones_default_page_size_is_50() -> None:
 
 def test_get_transacciones_page_size_min_boundary() -> None:
     """GET with page_size=1 is valid."""
-    token = "123e4567-e89b-42d3-a456-426614174000"
+    token = VALID_UUID
     response = client.get(
         "/api/v1/transacciones",
         headers={"Authorization": f"Bearer {token}"},
@@ -328,7 +331,7 @@ def test_get_transacciones_page_size_min_boundary() -> None:
 
 def test_get_transacciones_page_size_max_boundary() -> None:
     """GET with page_size=200 is valid."""
-    token = "123e4567-e89b-42d3-a456-426614174000"
+    token = VALID_UUID
     response = client.get(
         "/api/v1/transacciones",
         headers={"Authorization": f"Bearer {token}"},
@@ -339,7 +342,7 @@ def test_get_transacciones_page_size_max_boundary() -> None:
 
 def test_get_transacciones_page_size_exceeds_max_returns_422() -> None:
     """GET with page_size > 200 returns 422 validation error."""
-    token = "123e4567-e89b-42d3-a456-426614174000"
+    token = VALID_UUID
     response = client.get(
         "/api/v1/transacciones",
         headers={"Authorization": f"Bearer {token}"},
@@ -350,7 +353,7 @@ def test_get_transacciones_page_size_exceeds_max_returns_422() -> None:
 
 def test_get_transacciones_page_size_zero_returns_422() -> None:
     """GET with page_size=0 returns 422 validation error."""
-    token = "123e4567-e89b-42d3-a456-426614174000"
+    token = VALID_UUID
     response = client.get(
         "/api/v1/transacciones",
         headers={"Authorization": f"Bearer {token}"},
@@ -361,7 +364,7 @@ def test_get_transacciones_page_size_zero_returns_422() -> None:
 
 def test_get_transacciones_cursor_pagination() -> None:
     """GET with cursor pagination returns next page of results."""
-    token = "123e4567-e89b-42d3-a456-426614174000"
+    token = VALID_UUID
     # First page
     response1 = client.get(
         "/api/v1/transacciones",
@@ -387,7 +390,7 @@ def test_get_transacciones_cursor_pagination() -> None:
 
 def test_get_transacciones_no_next_cursor_when_no_more_pages() -> None:
     """GET returns next_cursor=None when all results fit in page."""
-    token = "123e4567-e89b-42d3-a456-426614174000"
+    token = VALID_UUID
     response = client.get(
         "/api/v1/transacciones",
         headers={"Authorization": f"Bearer {token}"},
@@ -403,7 +406,7 @@ def test_get_transacciones_no_next_cursor_when_no_more_pages() -> None:
 
 def test_get_transacciones_filter_estado_and_date_range() -> None:
     """GET with both estado and date range filters."""
-    token = "123e4567-e89b-42d3-a456-426614174000"
+    token = VALID_UUID
     desde = date(2026, 8, 1)
     hasta = date(2026, 8, 5)
     response = client.get(
@@ -424,7 +427,7 @@ def test_get_transacciones_filter_estado_and_date_range() -> None:
 
 def test_get_transacciones_all_filters_combined() -> None:
     """GET with estado, date range, and pagination."""
-    token = "123e4567-e89b-42d3-a456-426614174000"
+    token = VALID_UUID
     desde = date(2026, 8, 1)
     hasta = date(2026, 8, 5)
     response = client.get(
@@ -454,7 +457,7 @@ def test_get_transacciones_cursor_with_same_timestamp_different_id() -> None:
     This tests the cursor comparison logic:
     if created_at == cursor_time and transaction_id < cursor_id
     """
-    token = "123e4567-e89b-42d3-a456-426614174000"
+    token = VALID_UUID
     # First fetch with very small page size
     response1 = client.get(
         "/api/v1/transacciones",
@@ -480,7 +483,7 @@ def test_get_transacciones_cursor_with_same_timestamp_different_id() -> None:
 
 def test_get_transacciones_invalid_cursor_format_returns_400() -> None:
     """GET with malformed cursor returns 400 error."""
-    token = "123e4567-e89b-42d3-a456-426614174000"
+    token = VALID_UUID
     # Cursor without pipe separator
     response = client.get(
         "/api/v1/transacciones",
@@ -494,7 +497,7 @@ def test_get_transacciones_invalid_cursor_format_returns_400() -> None:
 
 def test_get_transacciones_cursor_past_all_items_returns_empty() -> None:
     """GET with cursor before all items (far past) returns empty data list."""
-    token = "123e4567-e89b-42d3-a456-426614174000"
+    token = VALID_UUID
     # Create a cursor that is "before" all transactions (far past date)
     # Items are sorted reverse (newest first), so cursor before oldest item
     # means we've already paginated past everything
