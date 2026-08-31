@@ -16,7 +16,12 @@ PATRÓN GOLDEN SET
 
 from __future__ import annotations
 
+import json
+
 from agent.core import run_agent
+from app.agent import MAX_STEPS, SYSTEM_PROMPT, TOOLS_SCHEMA, buscar_regla_prd
+from app.agent.logger import log_step
+from app.agent.loop import run_react_loop
 from tests.mocks.mock_llm import MockLLMClient, mock_chat_response
 
 # ─── Tests felices del bucle ReAct ───────────────────────────────────────────
@@ -24,18 +29,20 @@ from tests.mocks.mock_llm import MockLLMClient, mock_chat_response
 
 def test_agent_calculate_and_finish() -> None:
     """El agente debe usar `calculate`, recibir el resultado, y terminar con FINISH."""
-    client = MockLLMClient(responses=[
-        mock_chat_response(
-            thought="Necesito calcular 42 * 7.",
-            action="calculate",
-            action_input={"expression": "42 * 7"},
-        ),
-        mock_chat_response(
-            thought="El resultado es 294. Termino.",
-            action="FINISH",
-            action_input={"answer": "294"},
-        ),
-    ])
+    client = MockLLMClient(
+        responses=[
+            mock_chat_response(
+                thought="Necesito calcular 42 * 7.",
+                action="calculate",
+                action_input={"expression": "42 * 7"},
+            ),
+            mock_chat_response(
+                thought="El resultado es 294. Termino.",
+                action="FINISH",
+                action_input={"answer": "294"},
+            ),
+        ]
+    )
 
     result = run_agent("Cuanto es 42 * 7?", client)
 
@@ -48,18 +55,20 @@ def test_agent_calculate_and_finish() -> None:
 
 def test_agent_lookup_merchant_flow() -> None:
     """El agente debe consultar un comerciante y reportar su status."""
-    client = MockLLMClient(responses=[
-        mock_chat_response(
-            thought="El usuario pregunta por MCHT-00001.",
-            action="lookup_merchant",
-            action_input={"merchant_id": "MCHT-00001"},
-        ),
-        mock_chat_response(
-            thought="El comerciante existe y esta activo.",
-            action="FINISH",
-            action_input={"answer": "El comerciante MCHT-00001 esta activo."},
-        ),
-    ])
+    client = MockLLMClient(
+        responses=[
+            mock_chat_response(
+                thought="El usuario pregunta por MCHT-00001.",
+                action="lookup_merchant",
+                action_input={"merchant_id": "MCHT-00001"},
+            ),
+            mock_chat_response(
+                thought="El comerciante existe y esta activo.",
+                action="FINISH",
+                action_input={"answer": "El comerciante MCHT-00001 esta activo."},
+            ),
+        ]
+    )
 
     result = run_agent("Cual es el estado de MCHT-00001?", client)
 
@@ -77,34 +86,40 @@ def test_agent_blocks_action_requiring_approval() -> None:
     Si el LLM elige una acción en `ACTIONS_REQUIRING_APPROVAL`, el agente
     debe detenerse y reportar approved=False.
     """
-    client = MockLLMClient(responses=[
-        mock_chat_response(
-            thought="Voy a borrar este registro.",
-            action="delete_record",  # ← acción que requiere aprobación
-            action_input={"id": "TXN-001"},
-        ),
-    ])
+    client = MockLLMClient(
+        responses=[
+            mock_chat_response(
+                thought="Voy a borrar este registro.",
+                action="delete_record",  # ← acción que requiere aprobación
+                action_input={"id": "TXN-001"},
+            ),
+        ]
+    )
 
     result = run_agent("Borra el registro TXN-001.", client)
 
     assert result.approved is False
-    assert "aprobacion" in result.answer.lower() or "aprobación" in result.answer.lower()
+    assert (
+        "aprobacion" in result.answer.lower() or "aprobación" in result.answer.lower()
+    )
 
 
 def test_agent_handles_unknown_tool_gracefully() -> None:
     """Si el LLM inventa una herramienta, el agente registra ERROR y continúa."""
-    client = MockLLMClient(responses=[
-        mock_chat_response(
-            thought="Voy a usar una herramienta que no existe.",
-            action="fly_to_mars",
-            action_input={},
-        ),
-        mock_chat_response(
-            thought="La herramienta no existe. Termino.",
-            action="FINISH",
-            action_input={"answer": "No pude completar la tarea."},
-        ),
-    ])
+    client = MockLLMClient(
+        responses=[
+            mock_chat_response(
+                thought="Voy a usar una herramienta que no existe.",
+                action="fly_to_mars",
+                action_input={},
+            ),
+            mock_chat_response(
+                thought="La herramienta no existe. Termino.",
+                action="FINISH",
+                action_input={"answer": "No pude completar la tarea."},
+            ),
+        ]
+    )
 
     result = run_agent("Vuela a Marte.", client)
 
@@ -138,9 +153,11 @@ def test_agent_max_steps_limit() -> None:
 
 def test_mock_client_reset() -> None:
     """`MockLLMClient.reset()` debe permitir reutilizar el mismo cliente."""
-    client = MockLLMClient(responses=[
-        mock_chat_response(action="FINISH", action_input={"answer": "ok"}),
-    ])
+    client = MockLLMClient(
+        responses=[
+            mock_chat_response(action="FINISH", action_input={"answer": "ok"}),
+        ]
+    )
     run_agent("test 1", client)
     assert client.call_count == 1
 
@@ -148,3 +165,55 @@ def test_mock_client_reset() -> None:
     assert client.call_count == 0
     run_agent("test 2", client)
     assert client.call_count == 1
+
+
+def test_agent_public_api_and_prd_lookup() -> None:
+    """La API pública del agente y la búsqueda del PRD deben estar expuestas y funcionar."""
+    assert MAX_STEPS >= 1
+    assert "buscar_regla_prd" in SYSTEM_PROMPT
+    assert TOOLS_SCHEMA[0]["function"]["name"] == "buscar_regla_prd"
+
+    result = buscar_regla_prd("90 días")
+    assert "90" in result
+    assert "docs/prd/PRD.md" in result or "PRD.md" in result
+
+    empty = buscar_regla_prd("   ")
+    assert "no vacío" in empty.lower()
+
+
+def test_react_loop_with_prd_search_and_final_answer() -> None:
+    """El loop ReAct debe buscar en el PRD y responder con el texto final esperado."""
+    client = MockLLMClient(
+        responses=[
+            mock_chat_response(
+                thought="Necesito buscar la regla del historial.",
+                action="buscar_regla_prd",
+                action_input={"termino": "90 días"},
+            ),
+            mock_chat_response(
+                thought="Ya encontré la respuesta.",
+                action="final",
+                action_input={"respuesta": "90 días"},
+            ),
+        ]
+    )
+
+    result = run_react_loop("¿Cuál es el rango máximo del historial?", client)
+
+    assert "90 días" in result.lower()
+    assert client.call_count == 2
+
+
+def test_log_step_writes_jsonl_record(tmp_path, monkeypatch) -> None:
+    """El logger debe registrar cada paso del agente en formato JSONL."""
+    fake_path = tmp_path / "agent_run.jsonl"
+    monkeypatch.setattr("app.agent.logger.LOG_PATH", fake_path)
+
+    log_step(1, "buscar_regla_prd", {"termino": "90 días"}, "ok")
+
+    assert fake_path.exists()
+    payload = json.loads(fake_path.read_text(encoding="utf-8").strip().splitlines()[-1])
+    assert payload["step"] == 1
+    assert payload["tool"] == "buscar_regla_prd"
+    assert "90 días" in payload["args"]["termino"]
+    assert payload["result_summary"] == "ok"
