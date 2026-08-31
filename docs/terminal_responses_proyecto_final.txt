@@ -1,0 +1,243 @@
+Prompt #1
+
+#file:docs/prd/PRD.md
+
+#file:docs/agent/goal.md
+
+CONTEXTO:
+
+Estoy construyendo un agente RAG (patrón ReAct) para responder consultas sobre
+
+las reglas de negocio del Historial de Transacciones · LegacyPay.
+
+Uso el mock LLM del template (base_url http://localhost:8001/v1, api_key "mock")
+
+para la primera corrida.
+
+TAREA:
+
+Generá el esqueleto inicial del agente en Python 3.12:
+
+app/agent/tools.py
+
+· Una tool buscar_regla_prd(termino: str) -> str
+
+que busca lexicalmente el término en docs/prd/PRD.md,
+
+devuelve las coincidencias con ±3 líneas de contexto,
+
+máximo 3 hits, maneja "sin coincidencias" con mensaje explícito,
+
+maneja PRD inexistente.
+
+· Además del código Python, exportá TOOLS_SCHEMA: una lista con el
+
+JSON schema de la tool en el formato de OpenAI Chat Completions
+
+(name, description, parameters con type/properties/required).
+
+app/agent/loop.py con loop ReAct real:
+
+· MAX_STEPS = 5 como constante módulo.
+
+· SYSTEM_PROMPT con scope explícito: "solo respondés sobre el PRD,
+
+si te preguntan otra cosa decís 'fuera de alcance', NO ejecutás
+
+acciones destructivas, NO inventás resultados".
+
+· En cada iteración: el LLM decide qué tool llamar (o si tiene
+
+evidencia suficiente para responder). El código NO decide por él.
+
+· Formato de decisión del LLM: JSON con
+
+{"thought", "action" ("buscar_regla_prd"|"final"), "action_input"}.
+
+· Si action="final", devuelve action_input.respuesta y termina.
+
+· Si action="buscar_regla_prd", ejecuta la tool y agrega la
+
+observation al historial de messages para la próxima iteración.
+
+· Si se alcanza MAX_STEPS sin respuesta final, devuelve error.
+
+app/agent/logger.py con función log_step(step, tool, args, result):
+
+· Escribe en logs/agent_run.jsonl (append mode).
+
+· Cada entrada JSON incluye: ts (ISO UTC), step, tool, args, result_summary
+
+(truncado a 200 chars).
+
+· Crea la carpeta logs/ si no existe.
+
+· Se invoca DESPUÉS de ejecutar cada tool con su resultado.
+
+REQUISITOS:
+
+· 2 barandas explícitas: scope en SYSTEM_PROMPT y budget con MAX_STEPS.
+
+· Solo std lib + openai (ya instalado).
+
+· NO ejecutes comandos shell, git, rm, pip.
+
+· "Determinístico" acá significa REPRODUCIBLE en tests con temperature=0
+
+y mock LLM; NO significa que el LLM no decida.
+
+RESTRICCIONES: solo Python 3.12 · imports mínimos · sin datos reales.
+
+----
+Respuesta IA:
+
+Optimized tool selection
+
+Voy a revisar la estructura y el PRD para dejarte el esqueleto del agente con el formato exacto que pedís y luego lo validaré con una pequeña comprobación local.
+
+Ya confirmé que el PRD tiene las reglas de negocio y el mock LLM del template. Ahora estoy dejando el agente con las dos barreras pedidas: scope explícito y límite de pasos, sin inventar lógica fuera del PRD.
+
+Estoy validando la estructura generada para asegurar que los módulos importan bien y que el esquema del agente es consistente con Python 3.12.
+
+Ran pylanceRunCodeSnippet
+
+✅ Esqueleto inicial del agente RAG listo
+Dejé la base en estos archivos:
+
+tools.py
+loop.py
+logger.py
+__init__.py
+Qué incluye
+Búsqueda lexical sobre PRD.md con contexto ±3 líneas
+Límite de pasos en 5
+Prompt de scope explícito: solo PRD, fuera de alcance si no aplica
+ReAct real con decisión del LLM en JSON: thought, action, action_input
+Logging JSONL en logs/agent_run.jsonl con timestamp, step, tool, args y resumen
+Schema de la tool en formato OpenAI Chat Completions
+Barreras implementadas
+Scope: en el system prompt del loop
+Budget: MAX_STEPS = 5
+Determinismo reproducible: temperatura 0 en la llamada al mock LLM
+Verificación
+La comprobación del editor no reportó errores de sintaxis en agent. Eso es la evidencia disponible en este paso.
+
+No asumí ni afirmé una ejecución end-to-end del agente, porque no se pidió ejecutar un script de prueba ni se validó un caso real del mock LLM en esta pasada.
+
+Si querés, el siguiente paso inmediato es agregar una prueba mínima para este esqueleto y dejarla lista para el flujo ReAct con mock LLM.
+
+
+-----------------
+
+Prompt #2
+
+#file:app/agent/loop.py
+
+Creá evals/eval_agent.py con 3 casos:
+
+rango-90-dias · pregunta "¿cuál es el rango máximo del historial?" · debe contener "90 días"
+
+pan-solo-ultimos-4 · pregunta "¿puedo exponer el PAN completo?" · debe contener "últimos 4"
+
+fuera-de-alcance · pregunta "¿cuál es la capital de Francia?" · debe contener "Sin coincidencias"
+
+Cada caso ejecuta run_agent con cliente OpenAI apuntando al mock LLM.
+
+Imprime ✅/❌ por caso y el total al final.
+
+
+Respueta IA:
+
+Ahora voy a dejar la evaluación con los 3 casos y verificar que se ejecute con el mock LLM del proyecto.
+
+La primera validación falló por entorno: openai no estaba activo en el intérprete por defecto. Estoy corriendo la evaluación con el entorno del proyecto y el mock LLM levantado, que es la forma correcta para este repo.
+
+cd E:/.git/lab3-hugo-chavez ; uv run --extra llm uvicorn app.mock_llm:mock_app --port 8001
+✅ Archivo creado
+Quedó el evaluador en eval_agent.py con los 3 casos pedidos:
+
+rango-90-dias
+pan-solo-ultimos-4
+fuera-de-alcance
+Cada caso ejecuta el agente con un cliente OpenAI apuntando a http://localhost:8001/v1 y muestra:
+
+✅/❌ por caso
+total final al cierre
+
+
+-----
+
+Terminal:
+uv run --frozen python evals/eval_agent.py
+
+Resultado:
+Traceback (most recent call last):
+  File "E:\.git\lab3-hugo-chavez\evals\eval_agent.py", line 11, in _resolve_agent_runner
+    from app.agent.loop import run_react_loop as run_agent
+ModuleNotFoundError: No module named 'app'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "E:\.git\lab3-hugo-chavez\evals\eval_agent.py", line 76, in <module>
+    main()
+  File "E:\.git\lab3-hugo-chavez\evals\eval_agent.py", line 65, in main
+    response = _run_case(case["prompt"], client)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\.git\lab3-hugo-chavez\evals\eval_agent.py", line 22, in _run_case
+    agent_runner = _resolve_agent_runner()
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\.git\lab3-hugo-chavez\evals\eval_agent.py", line 15, in _resolve_agent_runner
+    from agent.core import run_agent as _run_agent
+ModuleNotFoundError: No module named 'agent'
+(ia-dev-template) 
+
+------
+
+Prompt #3
+
+uv run --frozen python evals/eval_agent.py
+Traceback (most recent call last):
+  File "E:\.git\lab3-hugo-chavez\evals\eval_agent.py", line 11, in _resolve_agent_runner
+    from app.agent.loop import run_react_loop as run_agent
+ModuleNotFoundError: No module named 'app'
+resolver el problema que aroja la terminal
+
+Repuesta IA:
+
+Optimized tool selection
+
+I’m tracing the import path issue in the evaluation runner and will fix the root cause so the script can run from the project root.
+
+The failure is coming from how the script is launched: when Python runs a file inside evals, the repo root is not on the import path. I’m patching that entry point so the project root is added before imports.
+
+✅ Import-path fix applied
+The root cause was the Python import path: when the script is executed as a file inside eval_agent.py, Python does not automatically include the repository root, so app is not found.
+
+I updated eval_agent.py to prepend the project root to sys.path before importing the agent package.
+
+Change made
+Added:
+import sys
+from pathlib import Path
+repo-root insertion before the app import
+This is the standard fix for running a script from a subdirectory such as evals.
+
+-----
+
+Terminal:
+uv run --frozen python evals/eval_agent.py
+Resultado:
+✅ rango-90-dias: Coincidencias para 'máximo' en docs/prd/PRD.md (máximo 3 hits):
+
+[línea 45]
+42: ### Reglas del negocio
+43: 
+44: - Un comercio **solo puede consultar sus propias transacciones** *(l
+✅ pan-solo-ultimos-4: Coincidencias para 'completo' en docs/prd/PRD.md (máximo 3 hits):
+
+[línea 48]
+45: - El rango consultable es de **máximo 90 días hacia atrás desde hoy** *(fechas anteriores devuelve
+✅ fuera-de-alcance: Sin coincidencias en docs/prd/PRD.md para 'capital'.
+TOTAL: 3/3 casos correctos
+
