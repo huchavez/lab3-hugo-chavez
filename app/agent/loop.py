@@ -6,8 +6,10 @@ from typing import Any
 from app.agent.logger import log_step
 from app.agent.tools import buscar_regla_prd
 
+# Baranda #1 · BUDGET · límite de iteraciones del loop
 MAX_STEPS = 5
 
+# Baranda #2 · SCOPE · en el SYSTEM_PROMPT
 SYSTEM_PROMPT = (
     "Solo respondés sobre el PRD del Historial de Transacciones · LegacyPay. "
     "Si te preguntan otra cosa decís 'fuera de alcance'. No ejecutás acciones "
