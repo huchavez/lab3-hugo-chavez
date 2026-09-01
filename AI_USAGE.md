@@ -1,102 +1,59 @@
-# AI_USAGE.md — Registro de Uso de IA
-
-> **Instrucciones:** Documentá las instancias **significativas** en que usaste IA
-> (Cursor, Claude Code, Copilot, ChatGPT, etc.) para escribir código o tomar
-> decisiones de diseño. Es un entregable obligatorio para ambos tracks. La defensa
-> puede incluir preguntas sobre cualquier entrada de este registro.
-
----
-
-## 🎯 Heurística: ¿cuándo SÍ documento, cuándo NO?
-
-**Documentás cuando hubo una decisión, no cuando hubo un autocomplete.**
-
-### ✅ Documentá si...
-
-- Reescribiste el prompt **3 o más veces** hasta llegar al output correcto
-- El output **requirió debugging** (no funcionó al primer intento)
-- La IA propuso **un diseño que aceptaste sin haberlo pensado antes**
-- **Rechazaste** una sugerencia por seguridad, performance o correctitud
-- La IA **inventó** algo (Ghost Dependency, API obsoleta, lógica fantasma) y lo detectaste
-- Usaste la IA para **refactorizar** un bloque complejo, no solo una línea
-- Hiciste un **cambio arquitectónico** con asistencia de IA
-
-### ⛔ No hace falta documentar si...
-
-- La IA completó un `import` o un nombre de variable obvio
-- Reescribió un docstring trivial
-- Generó **boilerplate** que ya sabías que ibas a escribir igual
-- Renombró una variable de forma mecánica
-- Te sugirió un `for` o un `if` que cualquier autocompletado clásico (no IA) también hubiera sugerido
-
-### 🧭 Regla de oro
-
-> *Si dentro de 3 meses no vas a saber por qué tu código quedó así → documentalo.
-> Si es obvio → no.*
-
-**Cantidad esperada:** un proyecto del M5 típicamente genera entre **5 y 15 entradas** significativas. Si pasaste de 25, probablemente estás sobre-documentando. Si tenés menos de 3, probablemente estás sub-documentando.
-
----
-
-## Resumen del proyecto
-
-**Nombre del proyecto:**
-**Estudiante/s:**
-
----
+# AI_USAGE.md · Proyecto Final · Hugo Chávez
 
 ## Registro de decisiones asistidas por IA
 
-### Entrada 001
+## Entrada 1 · 2026-08-31
 
-| Campo | Detalle |
-|-------|---------|
-| **Fecha** | YYYY-MM-DD |
-| **Herramienta** | Cursor / Claude Code / Copilot / ChatGPT / Otro |
-| **Contexto** | ¿En qué parte del código estabas trabajando? (ej: "Escribiendo el endpoint POST /transactions") |
-| **Prompt exacto (o resumen)** | Copia el prompt que usaste, o un resumen fiel si fue muy largo |
-| **Sugerencia de la IA** | ¿Qué generó la IA? Incluye el fragmento de código relevante si es corto |
-| **Decisión tomada** | ¿Aceptaste? ¿Modificaste? ¿Rechazaste? ¿Por qué? |
-| **Impacto en el código** | Archivo(s) y función(es) afectadas |
+**Contexto:** se trabajó en la base del agente RAG del proyecto final, con el objetivo de responder consultas sobre las reglas de negocio del PRD del Historial de Transacciones·LegacyPay.
 
-**Razonamiento en tus palabras:**
-> Escribe aquí por qué la sugerencia era correcta (o incorrecta) desde tu perspectiva
-> como desarrollador. ¿Qué habrías hecho diferente sin la IA?
+**Herramienta IA:** GitHub Copilot (Copilot Agent / asistente de código del editor).
 
----
+**Prompt clave:** la solicitud documentada en `docs/terminal_responses_proyecto_final.txt` describe la creación del esqueleto inicial del agente con `app/agent/tools.py`, `app/agent/loop.py` y `app/agent/logger.py`, con una tool `buscar_regla_prd(termino: str) -> str`, `TOOLS_SCHEMA`, loop ReAct y logging JSONL.
 
-### Entrada 002
+**Decisión IA:** propuso la estructura en Python 3.12, aplicó el patrón ReAct, definió `MAX_STEPS = 5`, agregó la barrera de scope explícita y documentó el logging en `logs/agent_run.jsonl`.
 
-| Campo | Detalle |
-|-------|---------|
-| **Fecha** | YYYY-MM-DD |
-| **Herramienta** | |
-| **Contexto** | |
-| **Prompt exacto (o resumen)** | |
-| **Sugerencia de la IA** | |
-| **Decisión tomada** | |
-| **Impacto en el código** | |
+**Decisión humana:** acepté la propuesta con ajuste, incorporando la aclaración de barreras y el determinismo reproducible con `temperature=0` en pruebas con mock LLM.
 
-**Razonamiento en tus palabras:**
->
+**Aprendizaje:** la restricción de alcance (“solo sobre el PRD”) y el límite de pasos fueron decisiones claves para evitar respuestas fuera de contexto y lógica inventada.
 
----
+## Entrada 2 · 2026-08-31
 
-<!-- Copia el bloque de "Entrada NNN" cuantas veces necesites -->
+**Contexto:** creación del evaluador con 3 casos de validación del agente, según la demanda de `evals/eval_agent.py`.
 
----
+**Herramienta IA:** GitHub Copilot.
 
-## Reflexión final
+**Prompt clave:** “Creá evals/eval_agent.py con 3 casos: rango-90-dias, pan-solo-ultimos-4 y fuera-de-alcance ... Cada caso ejecuta run_agent con cliente OpenAI...”.
 
-Responde al finalizar el proyecto (mínimo 100 palabras):
+**Decisión IA:** generó el evaluador con los 3 escenarios y la salida `✅/❌` por caso y total final.
 
-1. **¿En qué partes del proyecto la IA fue más útil?** ¿Por qué?
+**Decisión humana:** se validó la lógica del flujo y se confirmó la intención de evaluar el comportamiento del agente con el mock LLM del proyecto.
 
-2. **¿En qué partes la IA generó código que tuviste que corregir?** Describe el error y cómo lo detectaste.
+**Aprendizaje:** la evaluación debe comprobar no solo la respuesta final, sino que la herramienta de búsqueda y el scope del agente estén funcionando de manera reproducible.
 
-3. **¿Hubo alguna sugerencia de la IA que rechazaste completamente?** ¿Cuál fue tu razonamiento?
+## Entrada 3 · 2026-08-31
 
-4. **¿Cómo cambió tu flujo de trabajo al usar IA vs no usarla?** ¿Fuiste más rápido? ¿Cometiste errores distintos?
+**Contexto:** corrección de un problema real de ejecución en el runner de evaluación cuando se ejecutaba desde `evals/`.
 
-5. **Completa esta frase:** "Como Agent Manager, el mayor riesgo de usar IA sin supervisión en este proyecto habría sido..."
+**Herramienta IA:** GitHub Copilot.
 
+**Prompt clave:** “`uv run --frozen python evals/eval_agent.py` ... ModuleNotFoundError: No module named 'app' ... resolver el problema que arroja la terminal”.
+
+**Decisión IA:** diagnosticó la causa raíz: Python no añadía la raíz del repositorio a `sys.path` al ejecutar desde una subcarpeta. Se propone agregar la ruta del proyecto antes de importar `app`.
+
+**Decisión humana:** se aplicó la corrección y se validó que el evaluador quedaba ejecutable desde la raíz del proyecto.
+
+**Aprendizaje:** los problemas de import en scripts de evaluación no son lógicos del agente; son un problema de entorno y de path, y se corrigen sin alterar la lógica principal.
+
+## Entrada 4 · 2026-08-31
+
+**Contexto:** revisión y cierre de la validación del proyecto final, incluida la comprobación de que los 3 casos del evaluador responden según la PRD y que la cobertura cumpla el umbral mínimo.
+
+**Herramienta IA:** GitHub Copilot.
+
+**Prompt clave:** el conjunto de evidencias del archivo de terminal muestra la ejecución del proyecto y confirma que los casos se ejecutan con mock LLM, con resultados de `3/3` correctos y luego `74 passed` con `95.05%` de cobertura.
+
+**Decisión IA:** aportó la diagnosis final de la auditoría, identificando la causa del bloqueo de cobertura (pruebas insuficientes en `app.agent`) y la solución: ampliar pruebas sin tocar lógica core del agente.
+
+**Decisión humana:** se decidió corregir solo lo mínimo necesario: path del runner y pruebas específicas de agente, manteniendo la funcionalidad principal intacta.
+
+**Aprendizaje:** la validación final requiere evidencias de ejecución y no simplemente una intención de “que debería funcionar”; al documentar la salida exacta de pytest y coverage se hace trazable el cierre del proyecto.
