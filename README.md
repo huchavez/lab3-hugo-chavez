@@ -7,7 +7,7 @@ Agente RAG que responde preguntas sobre el PRD "Historial de Transacciones Legac
 ```bash
 git clone https://github.com/huchavez/lab3-hugo-chavez.git
 cd lab3-hugo-chavez
-git checkout proyecto-final
+git switch proyecto-final
 uv sync
 ```
 
@@ -41,9 +41,13 @@ Scope explícito en `SYSTEM_PROMPT` (`app/agent/loop.py`).
 Budget con `MAX_STEPS = 5` (`app/agent/loop.py`).
 ## Criterios de aceptación
 [x] Al menos 2/3 casos del Eval Set pasan.
+
 [x] Cada corrida genera log auditable en `logs/agent_run.jsonl`.
+
 [x] Agente se abstiene ante preguntas fuera de alcance.
+
 [x] CI verde en GitHub Actions.
+
 ## Limitaciones conocidas
 Retriever lexical sin embeddings · falla ante sinónimos.
 El mock LLM es determinístico · no cubre 100% de respuestas de un LLM real.
