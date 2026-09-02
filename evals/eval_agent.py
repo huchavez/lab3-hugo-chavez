@@ -60,6 +60,16 @@ TEST_CASES = [
         "prompt": "¿cuál es la capital de Francia?",
         "expected": "sin coincidencias",
     },
+    {
+        "id": "prompt-vacio",
+        "prompt": "",
+        "expected": "prompt esta vacio",
+    },
+    {
+        "id": "politica-pci-dss",
+        "prompt": "¿Existe alguna política PCI-DSS ?",
+        "expected": "PCI-DSS",
+    },
 ]
 
 
