@@ -11,6 +11,16 @@ git switch proyecto-final
 uv sync
 ```
 
+Copia el .env de ejemplo
+```bash
+cp .env.example .env
+```
+
+Instala dependencias (incluyendo dev tools)
+```bash
+uv sync --all-groups
+```
+
 Levantar el mock LLM (terminal aparte):
 ```bash
 uv run --frozen uvicorn app.mock_llm:mock_app --port 8001
@@ -23,10 +33,7 @@ curl -s http://localhost:8001/v1/chat/completions \
   -d '{"model":"gpt-4o-mini","messages":[{"role":"user","content":"plan"}]}' 
 ```
 
-Para asegurar las ejecuciones siguientes, corre además el siguiente comando que instala la librería utilizada en el agente.
-```bash
-uv sync --extra llm
-```
+
 
 Correr el agente:
 ```bash
