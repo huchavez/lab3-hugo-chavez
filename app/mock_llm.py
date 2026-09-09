@@ -121,6 +121,14 @@ def _is_agent_call(messages: list[Message]) -> bool:
     return False
 
 
+def _is_prd_agent_call(messages: list[Message]) -> bool:
+    """Detecta el contrato del agente RAG del historial de transacciones."""
+    return any(
+        msg.role == "system" and msg.content and "buscar_regla_prd" in msg.content
+        for msg in messages
+    )
+
+
 # ─── Modo Agente: JSON ReAct ──────────────────────────────────────────────────
 
 
@@ -137,7 +145,10 @@ def _decide_tool(user_msg: str) -> tuple[str, dict[str, Any], str]:
     has_math_expression = bool(re.search(r"\d\s*[\+\-\*\/x\^]\s*\d", msg)) or bool(
         re.search(r"\d+\s*(por|mas|menos|entre|veces)\s*\d+", msg)
     )
-    has_math_keyword = any(w in msg for w in ("calcula", "cuanto", "cuánto", "resultado", "suma", "multiplica"))
+    has_math_keyword = any(
+        w in msg
+        for w in ("calcula", "cuanto", "cuánto", "resultado", "suma", "multiplica")
+    )
 
     if has_math_expression or has_math_keyword:
         # Intenta extraer la expresión
@@ -153,7 +164,9 @@ def _decide_tool(user_msg: str) -> tuple[str, dict[str, Any], str]:
     # Heurística 2: lookup de comerciantes → merchant_lookup
     merchant_match = re.search(r"(MCHT[-_]?\d{3,5})", user_msg, re.IGNORECASE)
     if merchant_match or "merchant" in msg or "comerciante" in msg or "comercio" in msg:
-        merchant_id = merchant_match.group(1).upper() if merchant_match else "MCHT-00001"
+        merchant_id = (
+            merchant_match.group(1).upper() if merchant_match else "MCHT-00001"
+        )
         if "-" not in merchant_id and len(merchant_id) > 4:
             merchant_id = f"MCHT-{merchant_id[4:]}"
         return (
@@ -173,11 +186,13 @@ def _decide_tool(user_msg: str) -> tuple[str, dict[str, Any], str]:
     # Default: terminar con un mensaje genérico
     return (
         "FINISH",
-        {"answer": (
-            "No puedo identificar una herramienta adecuada para esta consulta. "
-            "Por favor reformula tu pregunta indicando un calculo, un merchant_id, "
-            "o usa el LLM real (MOCK_MODE=false)."
-        )},
+        {
+            "answer": (
+                "No puedo identificar una herramienta adecuada para esta consulta. "
+                "Por favor reformula tu pregunta indicando un calculo, un merchant_id, "
+                "o usa el LLM real (MOCK_MODE=false)."
+            )
+        },
         "No tengo una herramienta clara para esta consulta. Termino el ciclo.",
     )
 
@@ -191,6 +206,143 @@ def _agent_response(user_msg: str) -> str:
         "action_input": action_input,
     }
     return json.dumps(payload, ensure_ascii=False)
+
+
+_PRD_STOPWORDS = {
+    "el",
+    "la",
+    "los",
+    "las",
+    "un",
+    "una",
+    "unos",
+    "unas",
+    "de",
+    "del",
+    "al",
+    "a",
+    "en",
+    "por",
+    "para",
+    "con",
+    "sin",
+    "sobre",
+    "que",
+    "qué",
+    "cual",
+    "cuál",
+    "cuales",
+    "cuáles",
+    "quien",
+    "quién",
+    "cuanto",
+    "cuánto",
+    "cuando",
+    "cuándo",
+    "donde",
+    "dónde",
+    "como",
+    "cómo",
+    "es",
+    "son",
+    "esta",
+    "está",
+    "estan",
+    "están",
+    "ser",
+    "estar",
+    "mi",
+    "tu",
+    "su",
+    "nuestro",
+    "vuestro",
+    "sus",
+    "mis",
+    "tus",
+    "y",
+    "o",
+    "pero",
+    "si",
+    "no",
+    "ni",
+    "porque",
+    "aunque",
+    "me",
+    "te",
+    "se",
+    "nos",
+    "os",
+    "le",
+    "les",
+    "lo",
+    "hay",
+    "tiene",
+    "tienen",
+    "puede",
+    "pueden",
+    "debe",
+    "deben",
+    "esto",
+    "eso",
+    "aquello",
+    "esta",
+    "ese",
+    "aquel",
+    "muy",
+    "mas",
+    "más",
+    "menos",
+    "tan",
+    "tanto",
+    "prd",
+    "regla",
+    "reglas",
+    "sistema",
+    "historial",  # términos meta demasiado genéricos
+}
+
+
+def _extract_keyword(user_msg: str) -> str:
+    """
+    Simula la extracción de un término clave que haría un LLM real.
+
+    Un LLM real leería la consulta natural y decidiría qué término buscar en el PRD.
+    El mock lo aproxima con una heurística: elimina stopwords y signos de puntuación,
+    y devuelve la palabra más larga restante. Si no encuentra ninguna, devuelve la
+    consulta truncada a 20 chars.
+    """
+    clean = re.sub(r"[¿?¡!.,;:()\"']", " ", user_msg.lower())
+    candidatos = [
+        palabra
+        for palabra in clean.split()
+        if palabra not in _PRD_STOPWORDS and len(palabra) > 2
+    ]
+    if not candidatos:
+        return user_msg.strip()[:20]
+    return max(candidatos, key=len)
+
+
+def _prd_agent_response(last_msg: str) -> str:
+    """Devuelve una decisión reproducible para el agente RAG local."""
+    if last_msg.startswith("Observation:"):
+        return json.dumps(
+            {
+                "thought": "Ya tengo evidencia recuperada del PRD.",
+                "action": "final",
+                "action_input": {
+                    "respuesta": last_msg.removeprefix("Observation: ").strip()
+                },
+            },
+            ensure_ascii=False,
+        )
+    return json.dumps(
+        {
+            "thought": "Necesito evidencia del PRD para responder.",
+            "action": "buscar_regla_prd",
+            "action_input": {"termino": _extract_keyword(last_msg)},
+        },
+        ensure_ascii=False,
+    )
 
 
 # ─── Modo Conversacional: texto natural ──────────────────────────────────────
@@ -237,7 +389,9 @@ async def chat_completions(request: ChatCompletionRequest) -> ChatCompletionResp
         last_msg = request.messages[-1].content or ""
 
     # Decide el modo de respuesta
-    if _is_agent_call(request.messages):
+    if _is_prd_agent_call(request.messages):
+        content = _prd_agent_response(last_msg)
+    elif _is_agent_call(request.messages):
         content = _agent_response(last_msg)
     else:
         content = _conversational_response(last_msg)
@@ -290,5 +444,6 @@ async def root() -> dict[str, Any]:
 # Permite ejecutar como módulo: `uv run --frozen python -m app.mock_llm`
 if __name__ == "__main__":
     import uvicorn
+
     # Mock LLM debe escuchar todas las interfaces para Docker Compose
     uvicorn.run(mock_app, host="0.0.0.0", port=8001)  # noqa: S104  # nosec B104
